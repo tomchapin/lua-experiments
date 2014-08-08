@@ -24,13 +24,17 @@ function GuildRecruiter:Initialize()
 end
  
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
-	-- Handle the invitation queue whenever a message is received (instead of using a traditional timer)
-	GuildRecruiter.HandleInvitationQueue()
-	
-	-- Only add players seen in say (0) and zone chat (31)
-	if messageType == 0 or messageType == 31 then
-		local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
-		GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+	-- Only invite if the guild has less than 500 members
+	if GetNumGuildMembers(GuildRecruiter.savedVariables.guildNumber) < 500 then
+
+		-- Handle the invitation queue whenever a message is received (instead of using a traditional timer)
+		GuildRecruiter.HandleInvitationQueue()
+		
+		-- Only add players seen in say (0) and zone chat (31)
+		if messageType == 0 or messageType == 31 then
+			local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
+			GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+		end
 	end
 end
 
