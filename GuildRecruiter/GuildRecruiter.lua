@@ -44,18 +44,20 @@ function GuildRecruiter.GuildNotFull()
 end
 
 function GuildRecruiter.RunEventLoop()
-	if GuildRecruiter.eventLoopRunning == true and GuildRecruiter.GuildNotFull() == true then
-		-- Handle the invitation queue
-		GuildRecruiter.HandleInvitationQueue()
-	
-		-- Look for any players under our mouse reticle
-		if IsReticleHidden() == false and IsUnitPlayer("reticleover") == true then
-			local parsedPlayerName = GuildRecruiter.ParsePlayerName(GetRawUnitName("reticleover"))
-			if parsedPlayerName ~= "" then
-				GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
-			end			
-		end
+	if GuildRecruiter.eventLoopRunning == true then
+		if GuildRecruiter.GuildNotFull() == true then
+			-- Handle the invitation queue
+			GuildRecruiter.HandleInvitationQueue()
 		
+			-- Look for any players under our mouse reticle
+			if IsReticleHidden() == false and IsUnitPlayer("reticleover") == true then
+				local parsedPlayerName = GuildRecruiter.ParsePlayerName(GetRawUnitName("reticleover"))
+				if parsedPlayerName ~= "" then
+					GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+				end			
+			end
+		end
+	
 		-- Loop!
 		zo_callLater(GuildRecruiter.RunEventLoop, GuildRecruiter.savedVariables.eventLoopInterval)
 	end
@@ -101,7 +103,7 @@ end
 function GuildRecruiter.AddPlayerToGuild(playerName, guildId)
 	local guildName = GetGuildName(guildId)
 	GuildInvite(guildId, playerName)
-	-- d(string.format("Invited %s into guild %s", playerName, guildName))
+	d(string.format("Invited %s into guild %s", playerName, guildName))
 end
 
 -- Then we create an event handler function which will be called when the "addon loaded" event
