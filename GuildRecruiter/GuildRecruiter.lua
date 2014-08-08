@@ -30,7 +30,7 @@ end
  
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
 	-- Only invite if the guild has less than 500 members
-	if GuildRecruiter.GuildNotFull() then
+	if GuildRecruiter.GuildNotFull() == true then
 		-- Only add players seen in say (0) and zone chat (31)
 		if messageType == 0 or messageType == 31 then
 			local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
@@ -44,7 +44,7 @@ function GuildRecruiter.GuildNotFull()
 end
 
 function GuildRecruiter.RunEventLoop()
-	if GuildRecruiter.eventLoopRunning == true then
+	if GuildRecruiter.eventLoopRunning == true and GuildRecruiter.GuildNotFull() == true then
 		-- Handle the invitation queue
 		GuildRecruiter.HandleInvitationQueue()
 	
