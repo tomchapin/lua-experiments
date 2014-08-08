@@ -11,31 +11,63 @@ GuildRecruiter.defaults = {
 	invitationQueue = {},
 	guildNumber = 1,
 	secondsBetweenInvites = 20,
-	lastInviteSent = 0
+	lastInviteSent = 0,
+	eventLoopInterval = 1000
 }
+
+-- Don't touch this! (used for internal tracking purposes)
+GuildRecruiter.eventLoopRunning = false
  
 -- Next we create a function that will initialize our addon
 function GuildRecruiter:Initialize()
 	self.savedVariables = ZO_SavedVars:NewAccountWide("guild_recruiter_data", 1, self.name, GuildRecruiter.defaults)
 
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_CHAT_MESSAGE_CHANNEL, self.OnChatMessageReceived)
+	GuildRecruiter.StartEventLoop()
 	
 	d("Guild Recruiter loaded...")
 end
  
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
 	-- Only invite if the guild has less than 500 members
-	if GetNumGuildMembers(GuildRecruiter.savedVariables.guildNumber) < 500 then
-
-		-- Handle the invitation queue whenever a message is received (instead of using a traditional timer)
-		GuildRecruiter.HandleInvitationQueue()
-		
+	if GuildRecruiter.GuildNotFull() then
 		-- Only add players seen in say (0) and zone chat (31)
 		if messageType == 0 or messageType == 31 then
 			local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
 			GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
 		end
 	end
+end
+
+function GuildRecruiter.GuildNotFull()
+	return GetNumGuildMembers(GuildRecruiter.savedVariables.guildNumber) < 500
+end
+
+function GuildRecruiter.RunEventLoop()
+	if GuildRecruiter.eventLoopRunning == true then
+		-- Handle the invitation queue
+		GuildRecruiter.HandleInvitationQueue()
+	
+		-- Look for any players under our mouse reticle
+		if IsReticleHidden() == false and IsUnitPlayer("reticleover") == true then
+			local parsedPlayerName = GuildRecruiter.ParsePlayerName(GetRawUnitName("reticleover"))
+			if parsedPlayerName ~= "" then
+				GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+			end			
+		end
+		
+		-- Loop!
+		zo_callLater(GuildRecruiter.RunEventLoop, GuildRecruiter.savedVariables.eventLoopInterval)
+	end
+end
+
+function GuildRecruiter.StartEventLoop()
+	GuildRecruiter.eventLoopRunning = true
+	GuildRecruiter.RunEventLoop()
+end
+
+function GuildRecruiter.StopEventLoop()
+	GuildRecruiter.eventLoopRunning = false
 end
 
 function GuildRecruiter.ParsePlayerName(pname)
@@ -69,7 +101,7 @@ end
 function GuildRecruiter.AddPlayerToGuild(playerName, guildId)
 	local guildName = GetGuildName(guildId)
 	GuildInvite(guildId, playerName)
-	d(string.format("Invited %s into guild %s", playerName, guildName))
+	-- d(string.format("Invited %s into guild %s", playerName, guildName))
 end
 
 -- Then we create an event handler function which will be called when the "addon loaded" event
