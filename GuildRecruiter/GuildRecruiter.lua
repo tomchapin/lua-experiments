@@ -19,6 +19,8 @@ function GuildRecruiter:Initialize()
 	self.savedVariables = ZO_SavedVars:NewAccountWide("guild_recruiter_data", 1, self.name, GuildRecruiter.defaults)
 
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_CHAT_MESSAGE_CHANNEL, self.OnChatMessageReceived)
+	
+	d("Guild Recruiter loaded...")
 end
  
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
@@ -45,15 +47,19 @@ function GuildRecruiter.AddPlayerToInviteQueue(pname)
 end
 
 function GuildRecruiter.HandleInvitationQueue()
-	if GetTimeStamp() - GuildRecruiter.savedVariables.lastInviteSent > GuildRecruiter.savedVariables.secondsBetweenInvites then
-		GuildRecruiter.InitiateInviteFromQueue()
+	if table.getn(GuildRecruiter.savedVariables.invitationQueue) > 0 then
+		if GetTimeStamp() - GuildRecruiter.savedVariables.lastInviteSent > GuildRecruiter.savedVariables.secondsBetweenInvites then
+			GuildRecruiter.InitiateInviteFromQueue()
+		end
 	end
 end
 
 function GuildRecruiter.InitiateInviteFromQueue()
-	local playerName = table.remove(GuildRecruiter.savedVariables.invitationQueue, 1)
-	GuildRecruiter.AddPlayerToGuild(playerName, GuildRecruiter.savedVariables.guildNumber)
-	GuildRecruiter.savedVariables.lastInviteSent = GetTimeStamp()
+	if table.getn(GuildRecruiter.savedVariables.invitationQueue) > 0 then
+		local playerName = table.remove(GuildRecruiter.savedVariables.invitationQueue, 1)
+		GuildRecruiter.AddPlayerToGuild(playerName, GuildRecruiter.savedVariables.guildNumber)
+		GuildRecruiter.savedVariables.lastInviteSent = GetTimeStamp()
+	end
 end
 
 function GuildRecruiter.AddPlayerToGuild(playerName, guildId)
