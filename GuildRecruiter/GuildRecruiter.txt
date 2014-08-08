@@ -1,0 +1,5 @@
+## Title: Guild Recruiter
+## APIVersion: 100008
+## SavedVariables: guild_recruiter_data
+
+GuildRecruiter.lua
