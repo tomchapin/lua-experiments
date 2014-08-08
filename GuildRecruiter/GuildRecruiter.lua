@@ -13,7 +13,9 @@ GuildRecruiter.defaults = {
 	secondsBetweenInvites = 20,
 	lastInviteSent = 0,
 	eventLoopInterval = 500,
-	inviteUntilGuildMembersReached = 495
+	inviteUntilGuildMembersReached = 495,
+	inviteFromChat = true,
+	inviteFromReticleScan = true
 }
 
 -- Don't touch this! (used for internal tracking purposes)
@@ -28,14 +30,27 @@ function GuildRecruiter:Initialize()
 	
 	d("Guild Recruiter loaded...")
 end
- 
+
+-- This function is fired whenever a chat message is received
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
-	-- Only invite if the guild has less than 500 members
-	if GuildRecruiter.GuildMemberLimitNotReached() == true then
-		-- Only add players seen in say (0) and zone chat (31)
+	if GuildRecruiter.savedVariables.inviteFromChat == true then
+		-- Only add players seen in /say (0) and /zone chat (31)
 		if messageType == 0 or messageType == 31 then
 			local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
 			GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+		end
+	end
+end
+
+-- This function is fired on an interval
+function GuildRecruiter.HandleReticleScanInvite()
+	if GuildRecruiter.savedVariables.inviteFromReticleScan == true then
+		-- Look for any players under our mouse reticle
+		if IsReticleHidden() == false and IsUnitPlayer("reticleover") == true then
+			local parsedPlayerName = GuildRecruiter.ParsePlayerName(GetRawUnitName("reticleover"))
+			if parsedPlayerName ~= "" then
+				GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
+			end			
 		end
 	end
 end
@@ -46,18 +61,11 @@ end
 
 function GuildRecruiter.RunEventLoop()
 	if GuildRecruiter.eventLoopRunning == true then
-		if GuildRecruiter.GuildMemberLimitNotReached() == true then
-			-- Handle the invitation queue
-			GuildRecruiter.HandleInvitationQueue()
+		-- Handle the invitation queue
+		GuildRecruiter.HandleInvitationQueue()
 		
-			-- Look for any players under our mouse reticle
-			if IsReticleHidden() == false and IsUnitPlayer("reticleover") == true then
-				local parsedPlayerName = GuildRecruiter.ParsePlayerName(GetRawUnitName("reticleover"))
-				if parsedPlayerName ~= "" then
-					GuildRecruiter.AddPlayerToInviteQueue(parsedPlayerName)
-				end			
-			end
-		end
+		-- Handle reticle scan
+		GuildRecruiter.HandleReticleScanInvite()
 	
 		-- Loop!
 		zo_callLater(GuildRecruiter.RunEventLoop, GuildRecruiter.savedVariables.eventLoopInterval)
@@ -78,17 +86,23 @@ function GuildRecruiter.ParsePlayerName(pname)
 end
 
 function GuildRecruiter.AddPlayerToInviteQueue(pname)
-	if GuildRecruiter.savedVariables.playersInvited[pname] ~= 1 then
-		GuildRecruiter.savedVariables.playersInvited[pname] = 1
-		table.insert(GuildRecruiter.savedVariables.invitationQueue, pname)
-		d(string.format("Added player to guild invite queue: %s", pname))
+	-- Only invite if the guild has less than the max members
+	if GuildRecruiter.GuildMemberLimitNotReached() == true then
+		if GuildRecruiter.savedVariables.playersInvited[pname] ~= 1 then
+			GuildRecruiter.savedVariables.playersInvited[pname] = 1
+			table.insert(GuildRecruiter.savedVariables.invitationQueue, pname)
+			d(string.format("Added player to guild invite queue: %s", pname))
+		end
 	end
 end
 
 function GuildRecruiter.HandleInvitationQueue()
-	if table.getn(GuildRecruiter.savedVariables.invitationQueue) > 0 then
-		if GetTimeStamp() - GuildRecruiter.savedVariables.lastInviteSent > GuildRecruiter.savedVariables.secondsBetweenInvites then
-			GuildRecruiter.InitiateInviteFromQueue()
+	-- Only invite if the guild has less than the max members
+	if GuildRecruiter.GuildMemberLimitNotReached() == true then
+		if table.getn(GuildRecruiter.savedVariables.invitationQueue) > 0 then
+			if GetTimeStamp() - GuildRecruiter.savedVariables.lastInviteSent > GuildRecruiter.savedVariables.secondsBetweenInvites then
+				GuildRecruiter.InitiateInviteFromQueue()
+			end
 		end
 	end
 end
