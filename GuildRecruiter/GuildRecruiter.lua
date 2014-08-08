@@ -20,11 +20,71 @@ GuildRecruiter.defaults = {
 
 -- Don't touch this! (used for internal tracking purposes)
 GuildRecruiter.eventLoopRunning = false
- 
+
+-- Create the controls for the configuration pannel
+function GuildRecruiter.CreateConfiguration()
+
+	local LAM = LibStub("LibAddonMenu-2.0")
+
+	local panelData = {
+		type = "panel",
+		name = "Guild Recruiter",
+		displayName = "Guild Recruiter",
+		author = "Tom Chapin",
+		version = 1,
+		registerForDefaults = true,
+	}
+
+	LAM:RegisterAddonPanel(GuildRecruiter.name.."Config", panelData)
+
+	local controlData = {
+		[1] = {
+			type = "slider",
+			name = "Guild Number",
+			tooltip = "The guild number to invite players to",
+			min = 1, max = 5, step = 1,
+			getFunc = function() return GuildRecruiter.savedVariables.guildNumber end,
+			setFunc = function(newValue) GuildRecruiter.savedVariables.guildNumber = newValue; end,
+			default = GuildRecruiter.defaults.guildNumber,
+		},
+		[2] = {
+			type = "slider",
+			name = "Seconds Between Invites",
+			tooltip = "How many seconds to wait before sending the next invite in the queue",
+			min = 1, max = 60, step = 1,
+			getFunc = function() return GuildRecruiter.savedVariables.secondsBetweenInvites end,
+			setFunc = function(newValue) GuildRecruiter.savedVariables.secondsBetweenInvites = newValue; end,
+			default = GuildRecruiter.defaults.secondsBetweenInvites,
+		},
+		[3] = {
+			type = "checkbox",
+			name = "Invite people seen in chat",
+			tooltip = "Invite people seen in /say and /zone chat",
+			getFunc = function() return GuildRecruiter.savedVariables.inviteFromChat end,
+			setFunc = function(newValue) GuildRecruiter.savedVariables.inviteFromChat = newValue; end,
+			default = GuildRecruiter.savedVariables.inviteFromChat,
+		},
+		[4] = {
+			type = "checkbox",
+			name = "Invite people scanned on mouseover",
+			tooltip = "Invite people scanned on mouseover",
+			getFunc = function() return GuildRecruiter.savedVariables.inviteFromReticleScan end,
+			setFunc = function(newValue) GuildRecruiter.savedVariables.inviteFromReticleScan = newValue; end,
+			default = GuildRecruiter.savedVariables.inviteFromReticleScan,
+		},
+	}
+
+	LAM:RegisterOptionControls(GuildRecruiter.name.."Config", controlData)
+
+end
+
 -- Next we create a function that will initialize our addon
 function GuildRecruiter:Initialize()
 	self.savedVariables = ZO_SavedVars:NewAccountWide("guild_recruiter_data", 1, self.name, GuildRecruiter.defaults)
 
+	-- Create config menu
+	GuildRecruiter.CreateConfiguration()
+	
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_CHAT_MESSAGE_CHANNEL, self.OnChatMessageReceived)
 	GuildRecruiter.StartEventLoop()
 	

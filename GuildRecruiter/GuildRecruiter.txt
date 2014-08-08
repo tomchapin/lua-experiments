@@ -1,5 +1,12 @@
 ## Title: Guild Recruiter
 ## APIVersion: 100008
+## OptionalDependsOn: LibAddonMenu-2.0 Azurah
 ## SavedVariables: guild_recruiter_data
+
+Libs/LibStub/LibStub.lua
+Libs/LibAddonMenu-2.0/LibAddonMenu-2.0.lua
+Libs/LibAddonMenu-2.0/controls/panel.lua
+Libs/LibAddonMenu-2.0/controls/checkbox.lua
+Libs/LibAddonMenu-2.0/controls/slider.lua
 
 GuildRecruiter.lua
