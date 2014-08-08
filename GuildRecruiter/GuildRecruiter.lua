@@ -12,7 +12,8 @@ GuildRecruiter.defaults = {
 	guildNumber = 1,
 	secondsBetweenInvites = 20,
 	lastInviteSent = 0,
-	eventLoopInterval = 1000
+	eventLoopInterval = 500,
+	inviteUntilGuildMembersReached = 495
 }
 
 -- Don't touch this! (used for internal tracking purposes)
@@ -30,7 +31,7 @@ end
  
 function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text)
 	-- Only invite if the guild has less than 500 members
-	if GuildRecruiter.GuildNotFull() == true then
+	if GuildRecruiter.GuildMemberLimitNotReached() == true then
 		-- Only add players seen in say (0) and zone chat (31)
 		if messageType == 0 or messageType == 31 then
 			local parsedPlayerName = GuildRecruiter.ParsePlayerName(fromName)
@@ -39,13 +40,13 @@ function GuildRecruiter.OnChatMessageReceived(event, messageType, fromName, text
 	end
 end
 
-function GuildRecruiter.GuildNotFull()
-	return GetNumGuildMembers(GuildRecruiter.savedVariables.guildNumber) < 500
+function GuildRecruiter.GuildMemberLimitNotReached()
+	return GetNumGuildMembers(GuildRecruiter.savedVariables.guildNumber) < GuildRecruiter.savedVariables.inviteUntilGuildMembersReached
 end
 
 function GuildRecruiter.RunEventLoop()
 	if GuildRecruiter.eventLoopRunning == true then
-		if GuildRecruiter.GuildNotFull() == true then
+		if GuildRecruiter.GuildMemberLimitNotReached() == true then
 			-- Handle the invitation queue
 			GuildRecruiter.HandleInvitationQueue()
 		
