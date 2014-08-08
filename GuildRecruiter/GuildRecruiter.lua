@@ -72,6 +72,15 @@ function GuildRecruiter.CreateConfiguration()
 			setFunc = function(newValue) GuildRecruiter.savedVariables.inviteFromReticleScan = newValue; end,
 			default = GuildRecruiter.savedVariables.inviteFromReticleScan,
 		},
+		[5] = {
+			type = "slider",
+			name = "Stop Inviting After Members Reached",
+			tooltip = "When this number of members is reached in the specified guild, invitations will cease",
+			min = 1, max = 500, step = 1,
+			getFunc = function() return GuildRecruiter.savedVariables.inviteUntilGuildMembersReached end,
+			setFunc = function(newValue) GuildRecruiter.savedVariables.inviteUntilGuildMembersReached = newValue; end,
+			default = GuildRecruiter.defaults.inviteUntilGuildMembersReached,
+		},
 	}
 
 	LAM:RegisterOptionControls(GuildRecruiter.name.."Config", controlData)
