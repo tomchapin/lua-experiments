@@ -187,7 +187,8 @@ end
 function GuildRecruiter.AddPlayerToGuild(playerName, guildId)
 	local guildName = GetGuildName(guildId)
 	GuildInvite(guildId, playerName)
-	d(string.format("Invited %s into guild %s", playerName, guildName))
+	local membersInQueue = table.getn(GuildRecruiter.savedVariables.invitationQueue)
+	d(string.format("Invited %s into guild %s (%i in queue - %g min)", playerName, guildName, membersInQueue, membersInQueue*GuildRecruiter.savedVariables.secondsBetweenInvites/60))
 end
 
 -- Then we create an event handler function which will be called when the "addon loaded" event
